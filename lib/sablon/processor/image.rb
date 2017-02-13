@@ -13,6 +13,10 @@ module Sablon
         processor.manipulate
       end
 
+      def self.init
+        @@images_rids = {}
+      end
+
       def initialize(doc, properties, out)
         @doc = doc
         @properties = properties
@@ -21,7 +25,6 @@ module Sablon
 
       def manipulate
         next_id = next_rel_id
-        @@images_rids = {}
         relationships = @doc.at_xpath('r:Relationships', r: RELATIONSHIPS_NS_URI)
 
         @@images.to_a.each do |image|
