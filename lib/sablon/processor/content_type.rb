@@ -4,7 +4,8 @@ module Sablon::Processor::ContentType
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
     gif: 'image/gif',
-    bmp: 'image/bmp'
+    bmp: 'image/bmp',
+    svg: 'image/svg+xml'
   }
 
   def self.process(doc, properties, out)
