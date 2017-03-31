@@ -15,6 +15,7 @@ module Sablon
       def evaluate(context)
         value = list_expr.evaluate(context)
         value = value.to_ary if value.respond_to?(:to_ary)
+        value = [] unless value.is_a?(Enumerable)
         raise ContextError, "The expression #{list_expr.inspect} should evaluate to an enumerable but was: #{value.inspect}" unless value.is_a?(Enumerable)
 
         content = value.flat_map do |item|
