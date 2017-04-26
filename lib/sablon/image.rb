@@ -1,3 +1,5 @@
+require 'open-uri'
+
 module Sablon
   class Image
     include Singleton
@@ -7,6 +9,11 @@ module Sablon
       def inspect
         "#<Image #{name}:#{rid}"
       end
+    end
+
+    def self.create_by_url(path, random = nil)
+      image_name = "#{random || Random.new_seed}-#{File.extname(path)}"
+      Sablon::Image::Definition.new(image_name, IO.binread(open(path)))
     end
 
     def self.create_by_path(path, random = nil)
