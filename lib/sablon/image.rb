@@ -11,9 +11,10 @@ module Sablon
       end
     end
 
-    def self.create_by_url(path, random = nil)
+    def self.create_by_url(url, random = nil)
+      path = URI(url).path
       image_name = "#{random || Random.new_seed}-#{File.extname(path)}"
-      Sablon::Image::Definition.new(image_name, IO.binread(open(path)))
+      Sablon::Image::Definition.new(image_name, IO.binread(open(url)))
     end
 
     def self.create_by_path(path, random = nil)
