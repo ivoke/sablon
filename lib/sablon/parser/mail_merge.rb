@@ -13,10 +13,11 @@ module Sablon
         end
 
         private
-        def replace_field_display(node, content)
+
+        def replace_field_display(node, content, env)
           paragraph = node.ancestors(".//w:p").first
           display_node = get_display_node(node)
-          content.append_to(paragraph, display_node)
+          content.append_to(paragraph, display_node, env)
           display_node.remove
         end
 
@@ -35,8 +36,8 @@ module Sablon
           separate_node && get_display_node(pattern_node) && expression
         end
 
-        def replace(content)
-          replace_field_display(pattern_node, content)
+        def replace(content, env)
+          replace_field_display(pattern_node, content, env)
           (@nodes - [pattern_node]).each(&:remove)
         end
 
@@ -72,9 +73,9 @@ module Sablon
           @raw_expression = @node["w:instr"]
         end
 
-        def replace(content)
+        def replace(content, env)
           remove_extra_runs!
-          replace_field_display(@node, content)
+          replace_field_display(@node, content, env)
           @node.replace(@node.children)
         end
 
@@ -111,6 +112,7 @@ module Sablon
       end
 
       private
+
       def build_complex_field(node)
         possible_field_node = node.parent
         field_nodes = [possible_field_node]
@@ -118,7 +120,8 @@ module Sablon
           possible_field_node = possible_field_node.next_element
           field_nodes << possible_field_node
         end
-        ComplexField.new(field_nodes)
+        # skip instantiation if no end tag
+        ComplexField.new(field_nodes) if field_nodes.last
       end
     end
   end
