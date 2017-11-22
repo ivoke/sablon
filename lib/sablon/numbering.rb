@@ -1,5 +1,6 @@
 module Sablon
   class Numbering
+    include Singleton
     attr_reader :definitions
 
     Definition = Struct.new(:numid, :style) do
@@ -9,6 +10,10 @@ module Sablon
     end
 
     def initialize
+      reset!
+    end
+
+    def reset!
       @numid = 1000
       @definitions = []
     end

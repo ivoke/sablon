@@ -76,7 +76,6 @@ module ContentTestSetup
     @document = Nokogiri::XML.fragment(@template_text)
     @paragraph = @document.children.first
     @node = @document.css("span").first
-    @env = Sablon::Environment.new(nil)
   end
 
   private
@@ -89,7 +88,7 @@ class ContentStringTest < Sablon::TestCase
   include ContentTestSetup
 
   def test_single_line_string
-    Sablon.content(:string, "a normal string").append_to @paragraph, @node, @env
+    Sablon.content(:string, "a normal string").append_to @paragraph, @node
 
     output = <<-XML.strip
 <w:p><span>template</span><span>a normal string</span></w:p><w:p>AFTER</w:p>
@@ -98,7 +97,7 @@ class ContentStringTest < Sablon::TestCase
   end
 
   def test_numeric_string
-    Sablon.content(:string, 42).append_to @paragraph, @node, @env
+    Sablon.content(:string, 42).append_to @paragraph, @node
 
     output = <<-XML.strip
 <w:p><span>template</span><span>42</span></w:p><w:p>AFTER</w:p>
@@ -107,7 +106,7 @@ class ContentStringTest < Sablon::TestCase
   end
 
   def test_string_with_newlines
-    Sablon.content(:string, "a\nmultiline\n\nstring").append_to @paragraph, @node, @env
+    Sablon.content(:string, "a\nmultiline\n\nstring").append_to @paragraph, @node
 
     output = <<-XML.strip.gsub("\n", "")
 <w:p>
@@ -126,7 +125,7 @@ class ContentStringTest < Sablon::TestCase
   end
 
   def test_blank_string
-    Sablon.content(:string, "").append_to @paragraph, @node, @env
+    Sablon.content(:string, "").append_to @paragraph, @node
 
     assert_xml_equal @template_text, @document
   end
@@ -136,14 +135,14 @@ class ContentWordMLTest < Sablon::TestCase
   include ContentTestSetup
 
   def test_blank_word_ml
-    Sablon.content(:word_ml, "").append_to @paragraph, @node, @env
+    Sablon.content(:word_ml, "").append_to @paragraph, @node
 
     assert_xml_equal "<w:p>AFTER</w:p>", @document
   end
 
   def test_inserts_word_ml_into_the_document
     @word_ml = '<w:p><w:r><w:t xml:space="preserve">a </w:t></w:r></w:p>'
-    Sablon.content(:word_ml, @word_ml).append_to @paragraph, @node, @env
+    Sablon.content(:word_ml, @word_ml).append_to @paragraph, @node
 
     output = <<-XML.strip.gsub("\n", "")
 <w:p>

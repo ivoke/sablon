@@ -2,9 +2,9 @@
 module Sablon
   module Processor
     class Document
-      def self.process(xml_node, env, properties = {})
+      def self.process(xml_node, context, properties = {})
         processor = new(parser)
-        processor.manipulate xml_node, env
+        processor.manipulate xml_node, Sablon::Context.transform(context)
         processor.write_properties xml_node, properties if properties.any?
         xml_node
       end
@@ -17,10 +17,10 @@ module Sablon
         @parser = parser
       end
 
-      def manipulate(xml_node, env)
+      def manipulate(xml_node, context)
         operations = build_operations(@parser.parse_fields(xml_node))
         operations.each do |step|
-          step.evaluate env
+          step.evaluate context
         end
         cleanup(xml_node)
         xml_node
@@ -56,10 +56,10 @@ module Sablon
           block_class.new start_field, end_field
         end
 
-        def process(env)
+        def process(context)
           replaced_node = Nokogiri::XML::Node.new("tmp", start_node.document)
           replaced_node.children = Nokogiri::XML::NodeSet.new(start_node.document, body.map(&:dup))
-          Processor::Document.process replaced_node, env
+          Processor::Document.process replaced_node, context
           replaced_node.children
         end
 
@@ -189,16 +189,13 @@ module Sablon
           when /([^ ]+):each\(([^ ]+)\)/
             block = consume_block("#{$1}:endEach")
             Statement::Loop.new(Expression.parse($1), $2, block)
-          when /([^ ]+):if\(((==|!=)(\d|'[\s\S]+')+)\)/
-            block = consume_block("#{$1}:endIf")
-            Statement::OperatorCondition.new(Expression.parse($1), block, $2)
           when /([^ ]+):if\(([^)]+)\)/
             block = consume_block("#{$1}:endIf")
             Statement::Condition.new(Expression.parse($1), block, $2)
           when /([^ ]+):if/
             block = consume_block("#{$1}:endIf")
             Statement::Condition.new(Expression.parse($1), block)
-          when /^comment$/
+          when /comment/
             block = consume_block("endComment")
             Statement::Comment.new(block)
           when /^@([^ ]+):start/

@@ -2,9 +2,9 @@
 module Sablon
   module Statement
     class Insertion < Struct.new(:expr, :field)
-      def evaluate(env)
-        if content = expr.evaluate(env.context)
-          field.replace(Sablon::Content.wrap(content), env)
+      def evaluate(context)
+        if content = expr.evaluate(context)
+          field.replace(Sablon::Content.wrap(expr.evaluate(context)))
         else
           field.remove
         end
@@ -12,40 +12,25 @@ module Sablon
     end
 
     class Loop < Struct.new(:list_expr, :iterator_name, :block)
-      def evaluate(env)
-        value = list_expr.evaluate(env.context)
+      def evaluate(context)
+        value = list_expr.evaluate(context)
         value = value.to_ary if value.respond_to?(:to_ary)
         value = [] unless value.is_a?(Enumerable)
         raise ContextError, "The expression #{list_expr.inspect} should evaluate to an enumerable but was: #{value.inspect}" unless value.is_a?(Enumerable)
 
         content = value.flat_map do |item|
-          iter_env = env.alter_context(iterator_name => item)
-          block.process(iter_env)
+          iteration_context = context.merge(iterator_name => item)
+          block.process(iteration_context)
         end
         block.replace(content.reverse)
       end
     end
 
-    class OperatorCondition < Struct.new(:conditon_expr, :block, :operation)
-      def evaluate(env)
-        value = conditon_expr.evaluate(env.context)
-        if truthy?(operation[0..1], operation[2..-1].tr("'", ""), value.to_s)
-          block.replace(block.process(env).reverse)
-        else
-          block.replace([])
-        end
-      end
-
-      def truthy?(operation, value_a, value_b)
-        return (operation == "!=") ? (value_a != value_b) : (value_a == value_b) 
-      end
-    end
-
     class Condition < Struct.new(:conditon_expr, :block, :predicate)
-      def evaluate(env)
-        value = conditon_expr.evaluate(env.context)
+      def evaluate(context)
+        value = conditon_expr.evaluate(context)
         if truthy?(predicate ? value.public_send(predicate) : value)
-          block.replace(block.process(env).reverse)
+          block.replace(block.process(context).reverse)
         else
           block.replace([])
         end
@@ -62,7 +47,7 @@ module Sablon
     end
 
     class Comment < Struct.new(:block)
-      def evaluate(_env)
+      def evaluate(context)
         block.replace []
       end
     end

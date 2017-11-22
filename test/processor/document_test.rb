@@ -59,8 +59,7 @@ class ProcessorDocumentTest < Sablon::TestCase
   end
 
   def test_context_can_contain_string_and_symbol_keys
-    context = {"first_name" => "Jack", last_name: "Davis"}
-    result = process(snippet("simple_fields"), context)
+    result = process(snippet("simple_fields"), {"first_name" => "Jack", last_name: "Davis"})
     assert_equal "Jack Davis", text(result)
   end
 
@@ -385,48 +384,6 @@ class ProcessorDocumentTest < Sablon::TestCase
     assert_equal "ParagraphBefore Before Content After ParagraphAfter", text(with_true)
   end
 
-  def test_ignore_complex_field_spanning_multiple_paragraphs
-    result = process(snippet("test_ignore_complex_field_spanning_multiple_paragraphs"),
-                     {"current_time" => '14:53'})
-
-    assert_equal "AUTOTEXT Header:Date \\* MERGEFORMAT Day Month Year 14:53", text(result)
-    assert_xml_equal <<-document, result
-    <w:p w14:paraId="2A8BFD66" w14:textId="77777777" w:rsidR="006F0A69" w:rsidRDefault="00E40CBA" w:rsidP="00670731">
-      <w:r>
-        <w:fldChar w:fldCharType="begin"/>
-      </w:r>
-      <w:r>
-        <w:instrText xml:space="preserve"> AUTOTEXT  Header:Date  \\* MERGEFORMAT </w:instrText>
-      </w:r>
-      <w:r>
-        <w:fldChar w:fldCharType="separate"/>
-      </w:r>
-      <w:r w:rsidR="006F0A69" w:rsidRPr="009A09E3">
-        <w:t>Day Month Year</w:t>
-      </w:r>
-    </w:p>
-
-    <w:p w14:paraId="71B65E52" w14:textId="613138CB" w:rsidR="001D1AF8" w:rsidRDefault="00E40CBA" w:rsidP="006C34C3">
-      <w:pPr>
-        <w:pStyle w:val="Address"/>
-      </w:pPr>
-      <w:r>
-        <w:fldChar w:fldCharType="end"/>
-      </w:r>
-      <w:bookmarkEnd w:id="0"/>
-    </w:p>
-
-    <w:p w14:paraId="7C3EB778" w14:textId="78AB4714" w:rsidR="001D1AF8" w:rsidRPr="000C6261" w:rsidRDefault="00A35B65" w:rsidP="001D1AF8">
-        <w:r>
-          <w:rPr>
-            <w:noProof/>
-          </w:rPr>
-          <w:t>14:53</w:t>
-        </w:r>
-    </w:p>
-    document
-  end
-
   def test_conditional_with_predicate
     result = process(snippet("conditional_with_predicate"), {"body" => ""})
     assert_equal "some content", text(result)
@@ -435,42 +392,13 @@ class ProcessorDocumentTest < Sablon::TestCase
     assert_equal "", text(result)
   end
 
-  def test_conditional_with_equality_operator
-    result = process(snippet("conditional_with_equality_operator"), {"middle_name" => "John", "age" => 45})  
-    assert_xml_equal <<-document, result
-        <w:p>
-          <w:t>some content</w:t>
-        </w:p>
-        <w:p>
-          <w:t>some content</w:t>
-        </w:p>
-    document
-  end
-
   def test_comment
     result = process(snippet("comment"), {})
     assert_equal "Before After", text(result)
   end
 
-  def test_comment_block_and_comment_as_key
-    result = process(snippet("comment_block_and_comment_as_key"), {comment: 'Contents of comment key'})
-
-    assert_xml_equal <<-document, result
-    <w:r><w:t xml:space="preserve">Before </w:t></w:r>
-    <w:r><w:t xml:space="preserve">After </w:t></w:r>
-    <w:p>           
-      <w:r w:rsidR="004B49F0">
-        <w:rPr><w:noProof/></w:rPr>
-        <w:t>Contents of comment key</w:t>
-      </w:r>
-    </w:p>
-    document
-  end
-
   private
-
   def process(document, context)
-    env = Sablon::Environment.new(nil, context)
-    @processor.process(wrap(document), env).to_xml
+    @processor.process(wrap(document), context).to_xml
   end
 end
