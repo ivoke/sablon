@@ -29,7 +29,7 @@ module Sablon
     class OperatorCondition < Struct.new(:conditon_expr, :block, :operation)
       def evaluate(context)
         value = conditon_expr.evaluate(context)
-        if truthy?(operation[0..1], operation[2..-1].tr("'", ""), value.to_s)
+        if truthy?(operation[0..1], operation[2..-1].tr("'", "").gsub('\\\\s', " "), value.to_s)
           block.replace(block.process(context).reverse)
         else
           block.replace([])
